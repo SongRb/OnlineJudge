@@ -1,155 +1,101 @@
-#include <iostream>
 #include <cstdio>
-#include <queue>
 
 using namespace std;
 
 struct Node
 {
-	Node* left;
-	Node* right;
 	int value;
-	Node() {}
-	Node(int v, Node* l = NULL, Node* r = NULL) :value(v), left(l), right(r)
-	{
-
-	}
+	Node *left, *right;
 };
 
 char answer[50];
 int ansTop = -1;
 
-class BST
+void insert(Node*& t, int val)
 {
-private:
-	Node* root;
-
-	void insert(Node*& t, int v)
+	if (t == NULL)
 	{
-		if (t == NULL) t = new Node(v);
-		else if (t->value > v) insert(t->left, v);
-		else if (t->value < v) insert(t->right, v);
-		else return;
+		t = new Node;
+		t->left = NULL;
+		t->right = NULL;
+		t->value = val;
 	}
+	else if (t->value == val) return;
+	else if (t->value > val) insert(t->left, val);
+	else insert(t->right, val);
+}
 
-	void remove(Node*& t, int v)
+bool find(Node* t, int v)
+{
+	if (t == NULL) return false;
+	else if (t->value == v) return true;
+	else if (t->value > v)
 	{
-		if (t == NULL) return;
+		answer[++ansTop] = 'l';
+		return find(t->left, v);
+	}
+	else
+	{
+		answer[++ansTop] = 'r';
+		return find(t->right, v);
+	}
+}
 
-		if (t->value == v)
+void remove(Node*& t, int val)
+{
+	if (t == NULL) return;
+	else if (t->value == val)
+	{
+		Node *tmp;
+		if (t->right == NULL)
 		{
-			if (t->right != NULL)
-			{
-				if (t->right->left == NULL)
-				{
-					Node* tmp = t->right;
-					t->value = t->right->value;
-					t->right = t->right->right;
-					delete tmp;
-				}
-				else
-				{
-					Node* tmp = t->right;
-					while (tmp->left->left!=NULL)
-					{
-						tmp = tmp->left;
-					}
-					t->value = tmp->left->value;
-					Node *tt = tmp->left;
-					tmp->left = tmp->left->right;
-					delete tt;
-				}
-			}
-			else
-			{
-				Node* oldNode = t;
-				t = t->left;
-				delete oldNode;
-			}
-
+			tmp = t;
+			t = t->left;
+			delete tmp;
 		}
-		else if (t->value > v) remove(t->left, v);
-		else remove(t->right, v);
-	}
-
-public:
-	BST()
-	{
-		root = NULL;
-	}
-
-	~BST() {}
-
-	void insert(int v)
-	{
-		insert(root, v);
-	}
-
-	void remove(int x)
-	{
-		remove(root, x);
-	}
-
-	void find(int x)
-	{
-		char result[100];
-		int resTop = -1;
-
-		result[++resTop] = '*';
-		Node* p = root;
-		while (p != NULL)
+		else if (t->right->left == NULL)
 		{
-			if (p->value == x) break;
-			else if (p->value < x)
-			{
-				p = p->right;
-				result[++resTop] = 'r';
-			}
-			else
-			{
-				p = p->left;
-				result[++resTop] = 'l';
-			}
+			tmp = t->right;
+			t->value = t->right->value;
+			t->right = t->right->right;
+			delete tmp;
 		}
-
-		if (p == NULL) printf("Nothing.\n");
 		else
 		{
-			for (int i = 0; i <= resTop; i++)
-				printf("%c", result[i]);
-			printf("\n");
+			for (tmp = t->right; tmp->left->left != NULL; tmp = tmp->left);
+			t->value = tmp->left->value;
+			Node *tt = tmp->left;
+			tmp->left = tmp->left->right;
+			delete tt;
 		}
-
-
 	}
-
-};
-
+	else if (t->value > val) remove(t->left, val);
+	else remove(t->right, val);
+}
 
 int main()
 {
-	int N;
-	scanf("%d", &N);
-	BST test;
-	for (int i = 0; i < N; i++)
+	int n, i, t;
+	char f;
+	scanf("%d", &n);
+	Node *head = NULL;
+	for (i = 0; i < n; ++i)
 	{
-		char ch;
-		int d;
 		getchar();
-		scanf("%c %d", &ch, &d);
-		switch (ch)
+		scanf("%c %d", &f, &t);
+		if (f == '+') insert(head, t);
+		else if (f == '-') remove(head, t);
+		else
 		{
-		case '+':
-			test.insert(d);
-			break;
-		case '-':
-			test.remove(d);
-			break;
-		case '*':
-			test.find(d);
-			break;
-		default:
-			break;
+			if (find(head, t))
+			{
+				printf("*");
+				for (int j = 0; j <= ansTop; j++)
+					printf("%c", answer[j]);
+				printf("\n");
+				ansTop = -1;
+			}
+			else printf("Nothing.\n");
 		}
 	}
 }
