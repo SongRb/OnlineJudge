@@ -1,10 +1,16 @@
 import getpass
 import os
 
-class Input():
-    @staticmethod
-    def get_credentials():
-        return {"username": input("Username: "), "password": getpass.getpass("Password: ")}
+class Input:
+    def __init__(self):
+        self.username = None
+        self.password = None
+
+    def get_credentials(self):
+        if self.username is None or self.password is None:
+            self.username = input("Username: ")
+            self.password = getpass.getpass("Password: ")
+        return {"username": self.username, "password": self.password}
 
     @staticmethod
     def get_path():

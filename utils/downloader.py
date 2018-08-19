@@ -12,9 +12,10 @@ from input import Input
 
 
 class Downloader:
-    def __init__(self):
+    def __init__(self, input):
         self.session = requests.Session()
-        self.credentials = Input.get_credentials()
+        self.input = input
+        self.credentials = self.input.get_credentials()
         self.path = Input.get_path()
         self.algorithms_path = Input.get_algorithms_path()
         content = requests.get('https://leetcode.com/api/problems/algorithms/').content

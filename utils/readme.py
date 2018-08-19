@@ -5,6 +5,8 @@ import os
 import json
 import time
 
+from input import Input
+
 
 class Config:
     """
@@ -15,7 +17,7 @@ class Config:
     """
     local_path = '.'
     # solution of leetcode
-    github_leetcode_url = 'https://github.com/SongRb/OnlineJudge/tree/master/Leetcode'
+    github_leetcode_url = 'https://github.com/SongRb/OnlineJudge/tree/master/Leetcode/algorithms'
 
     leetcode_url = 'https://leetcode.com/problems/'
 
@@ -34,6 +36,7 @@ class Question:
         self.url = url
         self.lock = lock  # boolean，锁住了表示需要购买
         self.difficulty = difficulty
+        self.ac_rate = None
         # the solution url
         self.python = ''
         self.java = ''
@@ -49,7 +52,7 @@ class Question:
 
 
 class TableInform:
-    def __init__(self):
+    def __init__(self, username):
         # raw questions inform
         self.questions = []
         # this is table index
@@ -57,6 +60,7 @@ class TableInform:
         # this is the element of question
         self.table_item = {}
         self.locked = 0
+        self.username = username
 
     def get_leetcode_problems(self):
         """
@@ -76,11 +80,13 @@ class TableInform:
             url = question['stat']['question__title_slug']
             id_ = str(question['stat']['frontend_question_id'])
             lock = question['paid_only']
+            ac_rate = float(question['stat']['total_acs']) / float(question['stat']['total_submitted'])
             if lock:
                 self.locked += 1
             difficulty = difficultys[question['difficulty']['level'] - 1]
             url = Config.leetcode_url + url + '/description/'
             q = Question(id_, name, url, lock, difficulty)
+            q.ac_rate = ac_rate
             self.table.append(q.id_)
             self.table_item[q.id_] = q
         return self.table, self.table_item
@@ -154,7 +160,7 @@ class TableInform:
                     # print(folder_url)
                     self.table_item[qid].javascript = '[JavaScript]({})'.format(folder_url)
                 complete_info.complete_num += completed
-        readme = Readme(complete_info.total,
+        readme = Readme(self.username, complete_info.total,
                         complete_info.complete_num,
                         complete_info.lock,
                         complete_info.solved)
@@ -191,30 +197,31 @@ class Readme:
     update README.md when you finish one problem by some language
     """
 
-    def __init__(self, total, solved, locked, others=None):
+    def __init__(self, leetcode_username, total, solved, locked, others=None):
         """
 
         :param total: total problems nums
         :param solved: solved problem nums
-        :param others: 暂时还没用，我想做扩展
+        :param solved_problems: solved problem details
         """
+        self.leetcode_username = leetcode_username
         self.total = total
         self.solved = solved
-        self.others = others
+        self.solved_problems = others
         self.locked = locked
         self.time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        self.msg = '# Keep thinking, keep alive\n' \
+        self.msg = '# Keep coding, keep alive\n' \
                    'Until {}, I have solved **{}** / **{}** problems ' \
-                   'while **{}** are still locked.' \
+                   'while **{}** are still locked. Please refer to my [Leetcode Homepage](https://leetcode.com/{}/) to see submission statistics.' \
                    '\n\nCompletion statistic: ' \
                    '\n1. C++: {c++}' \
                    '\n2. Java: {java}' \
                    '\n\nNote: :lock: means you need to buy a book from LeetCode\n'.format(
-                    self.time, self.solved, self.total, self.locked, **self.others)
+                    self.time, self.solved, self.total, self.locked, self.leetcode_username, **self.solved_problems)
 
     def create_leetcode_readme(self, table_instance):
         """
-        create REAdME.md
+        create ReadME.md
         :return:
         """
         file_path = Config.local_path + '/Leetcode/README.md'
@@ -225,8 +232,8 @@ class Readme:
 
         with open(file_path, 'a') as f:
             f.write('## LeetCode Solution Table\n')
-            f.write('| ID | Title | Difficulty | C++ | Java |\n')
-            f.write('|:---:' * 5 + '|\n')
+            f.write('| ID | Title | Difficulty | Accepted Rate | C++ | Java |\n')
+            f.write('|:---:' * 6 + '|\n')
             table, table_item = table_instance
             # print(table)
             # for i in range(2):
@@ -242,20 +249,24 @@ class Readme:
                     'id': item.id_,
                     'title': '[{}]({}) {}'.format(item.title, item.url, _lock),
                     'difficulty': item.difficulty,
+                    'ac_rate': "{0:.0%}".format(item.ac_rate),
                     # 'js': item.javascript if item.javascript else 'To Do',
                     # 'python': item.python if item.python else 'To Do',
                     'c++': item.c_plus_plus if item.c_plus_plus else 'To Do',
                     'java': item.java if item.java else 'To Do'
                 }
-                line = '|{id}|{title}|{difficulty}|{c++}|{java}|\n'.format(**data)
+                line = '|{id}|{title}|{difficulty}|{ac_rate}|{c++}|{java}|\n'.format(**data)
                 f.write(line)
             print('README.md was created.....')
 
 
-def generate():
-    table = TableInform()
+def generate(input):
+    username = input.get_credentials()['username']
+    table = TableInform(username)
     table.update_table('Leetcode')
 
 
 if __name__ == '__main__':
-    generate()
+    input = Input()
+    input.get_credentials()
+    generate(input)
