@@ -252,10 +252,10 @@ class Readme:
             print('README.md was created.....')
 
 
-def main():
+def generate():
     table = TableInform()
     table.update_table('Leetcode')
 
 
 if __name__ == '__main__':
-    main()
+    generate()

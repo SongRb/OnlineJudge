@@ -6,3 +6,6 @@ PROBLEMS_URL = API_URL + "/problems/"
 PROBLEM_SETS = ['algorithms']
 SUBMISSIONS_URL = API_URL + "/submissions/"
 SUBMISSION_PARAMETERS = "/?format=json&offset=0"
+
+ALGORITHMS_DIR = 'Leetcode/algorithms'
+REPORT_PATH = 'Leetcode/README.md'

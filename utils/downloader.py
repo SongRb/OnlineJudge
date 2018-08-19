@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import constants
+from constants import ALGORITHMS_DIR
 from input import Input
 
 
@@ -15,16 +16,17 @@ class Downloader:
         self.session = requests.Session()
         self.credentials = Input.get_credentials()
         self.path = Input.get_path()
+        self.algorithms_path = Input.get_algorithms_path()
         content = requests.get('https://leetcode.com/api/problems/algorithms/').content
         # get all problems
         self.questions = json.loads(content)['stat_status_pairs']
         self.title2id = {stat['stat']['question__title']: stat['stat']['frontend_question_id'] for
                          stat in self.questions}
         self.overwrite = False
-        self.stored_problem_path = os.path.join('Leetcode', 'result.json')
+        self.stored_problem_path = os.path.join(self.path,'result.json')
         self.stored_problem = dict()
 
-        self.error_problem_path = os.path.join('Leetcode', 'error.json')
+        self.error_problem_path = os.path.join(self.path, 'error.json')
         self.error_list = list()
 
     def load_stored_problem(self):
@@ -35,11 +37,11 @@ class Downloader:
             self.stored_problem = dict()
 
     def save_stored_problem(self):
-        with open(os.path.join('Leetcode', 'result.json'), 'w') as fout:
+        with open(os.path.join(self.path, 'result.json'), 'w') as fout:
             json.dump(self.stored_problem, fout)
 
     def save_error_problem(self):
-        with open(os.path.join('Leetcode', 'error.json'), 'w') as fout:
+        with open(os.path.join(self.path, 'error.json'), 'w') as fout:
             json.dump(self.error_list, fout)
 
     def get_token(self):
@@ -88,7 +90,7 @@ class Downloader:
                             continue
                         break
                 else:
-                    print("No accepted solution found for %s" % question)
+                    print("No newer accepted solution found for %s" % question)
             except Exception as e:
                 print("Parse %s error..., caused by %s" % (question, str(e)))
                 self.error_list.append([question, str(e)])
@@ -105,9 +107,8 @@ class Downloader:
 
     def save_solution_file(self, problem_set, file_name, code_type, code):
         print("Saving solution for '" + file_name + "'")
-        with open(
-                "{0}/{1}-{2}.{3}".format(self.path, self.title2id[file_name], file_name, code_type),
-                'w', encoding='utf8') as file_:
+        filepath = "{0}/{1}-{2}.{3}".format(self.algorithms_path, self.title2id[file_name], file_name, code_type)
+        with open(filepath, 'w', encoding='utf8') as file_:
             file_.write(code)
 
     @staticmethod
