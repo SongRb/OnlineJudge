@@ -1,1 +1,4 @@
 /utils/__pycache__/
+*~
+/Leetcode/result.json
+/Leetcode/error.json
