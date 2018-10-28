@@ -11,9 +11,9 @@ from input import Input
 
 
 class Downloader:
-    def __init__(self, input):
+    def __init__(self, _input):
         self.session = requests.Session()
-        self.input = input
+        self.input = _input
         self.credentials = self.input.get_credentials()
         self.path = Input.get_path()
         self.algorithms_path = Input.get_algorithms_path()
@@ -56,8 +56,8 @@ class Downloader:
         self.session.post(
             constants.LOGIN_URL,
             data={
-                'login': 'SongRb',
-                'password': '156933tsk',
+                'login': self.credentials['username'],
+                'password': self.credentials['password'],
                 'csrfmiddlewaretoken': loginCSRF
             },
              headers={
@@ -93,7 +93,9 @@ class Downloader:
                 response = self.session.get(
                     constants.SUBMISSIONS_URL + question + constants.SUBMISSION_PARAMETERS)
                 accepted_submissions = self.get_latest_accepted_submission(
-                    json.loads(response.content))
+                    json.loads(response.content)
+                )
+                time.sleep(3)
                 submission_url = accepted_submissions[0]['url']
                 if accepted_submissions and submission_url not in self.stored_problem:
                     for i in range(3):
